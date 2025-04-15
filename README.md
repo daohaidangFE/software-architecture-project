@@ -49,4 +49,3 @@ Hệ thống sử dụng các mô hình học máy để nhận dạng vân tay 
 | **MySQL**              | Lưu trữ thông tin nhân viên và metadata mô hình |
 | **MinIO**              | Lưu trữ file mô hình và dữ liệu vân tay |
 
----
