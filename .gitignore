@@ -1,0 +1,20 @@
+
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Logs và file tạm
+*.log
+*.tmp
+
+# File cấu hình nhạy cảm (tùy chọn)
+src/main/resources/application.properties
+
+# Bỏ qua file HELP.md (theo file tham khảo của bạn)
+HELP.md

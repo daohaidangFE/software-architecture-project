@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint Security - Trained Models Management</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Link tới file CSS tùy chỉnh -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="sidebar bg-indigo-800 text-white w-64 flex-shrink-0">
+            <div class="p-4 flex items-center space-x-2 border-b border-indigo-700">
+                <div class="fingerprint-scan w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-fingerprint text-xl"></i>
+                </div>
+                <h1 class="text-xl font-bold">FingerSecure</h1>
+            </div>
+            <nav class="p-4">
+                <!-- Navigation Sections -->
+                <div class="mb-6">
+                    <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-3">Management</h2>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-users-cog"></i>
+                                <span>Employees</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-fingerprint"></i>
+                                <span>Fingerprint Templates</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="mb-6">
+                    <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-3">Model Training</h2>
+                    <ul class="space-y-2">
+                         <li>
+                            <a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-brain"></i>
+                                <span>Train Fingerprint Detection</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-user-tag"></i>
+                                <span>Train Person Recognition</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                 <div class="mb-6">
+                    <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-3">Trained Models</h2>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="#" class="flex items-center space-x-2 px-3 py-2 rounded bg-indigo-900"> <!-- Active link -->
+                                <i class="fas fa-robot"></i>
+                                <span>Model Management</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-3">Statistics</h2>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Employee Stats</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Model Stats</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Header -->
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <h1 class="text-2xl font-bold text-gray-800">Trained Models Management</h1>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input type="text" placeholder="Search models..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <div class="relative">
+                            <button class="p-2 rounded-full hover:bg-gray-100">
+                                <i class="fas fa-bell text-gray-600"></i>
+                                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                                <span>AD</span>
+                            </div>
+                            <span class="font-medium">Admin</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="p-6">
+                <!-- Stats Cards -->
+                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                     <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Total Models</p>
+                                <h3 id="total-models-stat" class="text-2xl font-bold">-</h3> <!-- ID Added -->
+                            </div>
+                            <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                                <i class="fas fa-robot text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Active Models</p>
+                                <h3 id="active-models-stat" class="text-2xl font-bold">-</h3> <!-- ID Added -->
+                            </div>
+                            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Detection Models</p>
+                                <h3 id="detection-models-stat" class="text-2xl font-bold">-</h3> <!-- ID Added -->
+                            </div>
+                            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                <i class="fas fa-brain text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Classifier Models</p>
+                                <h3 id="classifier-models-stat" class="text-2xl font-bold">-</h3> <!-- ID Added -->
+                            </div>
+                            <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                                <i class="fas fa-user-tag text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Actions -->
+                <div class="bg-white rounded-lg shadow mb-6 p-4">
+                   <div class="flex flex-wrap items-center justify-between">
+                        <div class="flex space-x-2 mb-2 md:mb-0">
+                            <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2">
+                                <i class="fas fa-plus"></i>
+                                <span>Add New Model</span>
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
+                                <i class="fas fa-file-import"></i>
+                                <span>Import</span>
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
+                                <i class="fas fa-file-export"></i>
+                                <span>Export</span>
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="relative">
+                                <select class="appearance-none pl-3 pr-8 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option>Sort by: Newest</option>
+                                    <!-- <option>Sort by: Accuracy</option> --> <!-- Tạm ẩn vì chưa có data -->
+                                    <option>Sort by: Name</option>
+                                </select>
+                                <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+                            </div>
+                            <button class="p-2 rounded-lg hover:bg-gray-100">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Cards Container -->
+                <!-- Nội dung sẽ được điền bởi script.js -->
+                <div id="model-card-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Card mẫu đã bị xóa, script sẽ tạo card từ API -->
+
+                    <!-- Add New Model Card (Giữ lại card này) -->
+                    <div class="model-card bg-white rounded-lg shadow overflow-hidden transition duration-300 border-2 border-dashed border-gray-300 hover:border-indigo-500 flex items-center justify-center">
+                        <button class="p-6 text-center">
+                            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                                <i class="fas fa-plus text-xl"></i>
+                            </div>
+                            <h3 class="font-bold text-lg text-gray-700">Add New Model</h3>
+                            <p class="text-gray-500 text-sm">Create or import a new trained model</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Model Details Modal (hidden by default) -->
+                <!-- ID đã được thêm vào các phần tử cần thiết -->
+                <div id="modelDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-screen overflow-auto">
+                        <!-- Modal Header -->
+                        <div class="p-6 border-b">
+                           <div class="flex justify-between items-center">
+                                <h2 id="modal-model-title" class="text-2xl font-bold">Model Details</h2> <!-- ID Added -->
+                                <button id="closeModal" class="text-gray-500 hover:text-gray-700"> <!-- ID Added -->
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Modal Body -->
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                <div class="col-span-2">
+                                    <h3 id="modal-model-name" class="text-xl font-semibold mb-4">-</h3> <!-- ID Added, Placeholder -->
+                                    <p id="modal-model-description" class="text-gray-700 mb-4">-</p> <!-- ID Added, Placeholder -->
+
+                                    <!-- Các phần tĩnh hoặc chưa có dữ liệu từ API -->
+                                    <div class="mb-6">
+                                        <h4 class="font-medium mb-2">Model Parameters (Example)</h4>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p class="text-gray-500 text-sm">Framework</p>
+                                                <p class="font-medium">N/A</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-gray-500 text-sm">Architecture</p>
+                                                <p class="font-medium">N/A</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                     <div class="mb-6">
+                                        <h4 class="font-medium mb-2">Performance Metrics (Example)</h4>
+                                        <p class="text-sm text-gray-500">Data not available from API yet.</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <!-- Quick Actions (Giữ nguyên hoặc ẩn đi nếu chưa có logic) -->
+                                    <div class="bg-gray-100 rounded-lg p-4 mb-4">
+                                         <h4 class="font-medium mb-3">Quick Actions</h4>
+                                         <div class="space-y-2">
+                                            <button class="w-full py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center justify-center space-x-2 disabled:opacity-50" disabled>
+                                                <i class="fas fa-play"></i>
+                                                <span>Deploy</span>
+                                            </button>
+                                            <button class="w-full py-2 border border-indigo-600 text-indigo-600 rounded hover:bg-indigo-50 flex items-center justify-center space-x-2 disabled:opacity-50" disabled>
+                                                <i class="fas fa-pencil-alt"></i>
+                                                <span>Edit</span>
+                                            </button>
+                                            <button class="w-full py-2 border border-gray-300 rounded hover:bg-gray-50 flex items-center justify-center space-x-2 disabled:opacity-50" disabled>
+                                                <i class="fas fa-download"></i>
+                                                <span>Export</span>
+                                            </button>
+                                            <button class="w-full py-2 border border-red-500 text-red-500 rounded hover:bg-red-50 flex items-center justify-center space-x-2 disabled:opacity-50" disabled>
+                                                <i class="fas fa-trash-alt"></i>
+                                                <span>Delete</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-100 rounded-lg p-4">
+                                        <h4 class="font-medium mb-3">Model Information</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-gray-500 text-sm">Version</p>
+                                                <p id="modal-model-version" class="font-medium">-</p> <!-- ID Added -->
+                                            </div>
+                                            <div>
+                                                <p class="text-gray-500 text-sm">Type</p>
+                                                <p id="modal-model-type" class="font-medium">-</p> <!-- ID Added -->
+                                            </div>
+                                             <div>
+                                                <p class="text-gray-500 text-sm">Model Path</p>
+                                                <p id="modal-model-path" class="font-medium break-all">-</p> <!-- ID Added -->
+                                            </div>
+                                            <div>
+                                                <p class="text-gray-500 text-sm">Trained At</p>
+                                                <p id="modal-model-trained-at" class="font-medium">-</p> <!-- ID Added -->
+                                            </div>
+                                            <div>
+                                                <p class="text-gray-500 text-sm">Created At</p>
+                                                <p id="modal-model-created-at" class="font-medium">-</p> <!-- ID Added -->
+                                            </div>
+                                            <div>
+                                                <p class="text-gray-500 text-sm">Last Updated At</p>
+                                                <p id="modal-model-updated-at" class="font-medium">-</p> <!-- ID Added -->
+                                            </div>
+                                            <!-- Các thông tin tĩnh khác (chưa có từ API) -->
+                                            <div>
+                                                <p class="text-gray-500 text-sm">Created By</p>
+                                                <p class="font-medium">N/A</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-gray-500 text-sm">Model Size</p>
+                                                <p class="font-medium">N/A</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Các phần lịch sử (chưa có dữ liệu từ API) -->
+                            <div class="mb-6">
+                                <h4 class="font-medium mb-3">Training History</h4>
+                                <p class="text-sm text-gray-500">Data not available from API yet.</p>
+                                <!-- Bảng Training History đã bị xóa -->
+                            </div>
+                            <div>
+                                <h4 class="font-medium mb-3">Deployment History</h4>
+                                <p class="text-sm text-gray-500">Data not available from API yet.</p>
+                                <!-- Lịch sử Deployment đã bị xóa -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Link tới file JavaScript tùy chỉnh (đặt cuối body) -->
+    <script src="js/script.js"></script>
+</body>
+</html>
