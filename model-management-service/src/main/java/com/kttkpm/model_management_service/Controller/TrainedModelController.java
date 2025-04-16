@@ -40,23 +40,18 @@ public class TrainedModelController {
 
     @PostMapping
     public ResponseEntity<ModelResponse> createModel(@Valid @RequestBody CreateModelRequest createRequest) {
-        // @Valid sẽ kích hoạt validation trên DTO
-        // GlobalExceptionHandler sẽ bắt MethodArgumentNotValidException nếu validation fail
         ModelResponse savedModel = modelService.createModel(createRequest);
         return new ResponseEntity<>(savedModel, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ModelResponse> updateModel(@PathVariable Long id, @Valid @RequestBody UpdateModelRequest updateRequest) {
-        // @Valid cũng áp dụng cho update
-        // Service sẽ ném ResourceNotFoundException nếu không tìm thấy id
         ModelResponse updatedModel = modelService.updateModel(id, updateRequest);
         return ResponseEntity.ok(updatedModel);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteModel(@PathVariable Long id) {
-        // Service sẽ ném ResourceNotFoundException nếu không tìm thấy id
         modelService.deleteModel(id);
         return ResponseEntity.noContent().build();
     }

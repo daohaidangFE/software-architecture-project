@@ -1,270 +1,492 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // --- DOM Element References ---
     const modelContainer = document.getElementById('model-card-container');
-    const modal = document.getElementById('modelDetailsModal');
-    const closeModal = document.getElementById('closeModal');
-    const addNewModelCard = modelContainer ? modelContainer.querySelector('.border-dashed') : null; // Giữ lại card "Add New"
+    const detailsModal = document.getElementById('modelDetailsModal');
+    const closeDetailsModalButton = document.getElementById('closeModal'); // Nút đóng modal chi tiết (X trên modal)
 
-    // URL của backend API
-    const apiUrl = 'http://localhost:8081/api/v1/models'; // Thay đổi nếu backend chạy ở địa chỉ khác
+    // Form Modal Elements
+    const modelFormModal = document.getElementById('modelFormModal');
+    const closeFormModalButton = document.getElementById('closeFormModal'); // Nút X trên form modal
+    const cancelFormModalButton = document.getElementById('cancelFormModal'); // Nút Cancel dưới form
+    const modelForm = document.getElementById('model-form');
+    const modalFormTitle = document.getElementById('modal-form-title');
+    const modelIdInput = document.getElementById('model-id'); // Input ẩn
+    const modelNameInput = document.getElementById('model-name');
+    const modelVersionInput = document.getElementById('model-version');
+    const modelTypeInput = document.getElementById('model-type');
+    const modelPathInput = document.getElementById('model-path');
+    const modelDescriptionInput = document.getElementById('model-description');
+    const modelTrainedAtInput = document.getElementById('model-trained-at');
+    const saveModelButton = document.getElementById('saveModelButton');
 
-    // Biến để lưu trữ dữ liệu models lấy từ API
-    let modelsData = [];
+    // Action Elements
+    const addModelButton = document.getElementById('add-model-button'); // Nút "Add New Model" trên thanh actions
+    const addModelCardTemplate = document.getElementById('add-model-card'); // Card template dashed
+    const sortSelect = document.getElementById('sort-select');
+    const feedbackMessage = document.getElementById('feedback-message');
+    const searchInput = document.getElementById('search-input'); // Biến cho search
 
-    // --- Hàm định dạng ngày tháng ---
+    // --- State Variables ---
+    const apiUrl = 'http://localhost:8081/api/v1/models';
+    let modelsData = []; // Dữ liệu gốc từ API, luôn giữ bản đầy đủ
+    let filteredModelsData = []; // Dữ liệu đã được lọc bởi search (nếu có)
+    let currentFormMode = 'add';
+    let currentEditModelId = null;
+    let currentSortCriteria = 'newest';
+
+    // --- Utility Functions ---
     function formatDate(dateTimeString) {
         if (!dateTimeString) return 'N/A';
         try {
             const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-            return new Date(dateTimeString).toLocaleDateString('vi-VN', options); // Format VN
+            return new Date(dateTimeString).toLocaleDateString('vi-VN', options);
         } catch (e) {
-            console.error("Error formatting date:", dateTimeString, e);
-            return dateTimeString; // Trả về chuỗi gốc nếu lỗi
+            // console.error("Error formatting date:", dateTimeString, e);
+            return dateTimeString; // Giữ nguyên nếu lỗi
         }
     }
 
-    // --- Hàm tạo HTML cho một Model Card ---
-    function createModelCard(model) {
-        // Xác định trạng thái và màu sắc (ví dụ đơn giản dựa trên tên)
-        let status = 'Unknown';
-        let statusColor = 'gray';
-        let buttonText = 'Details';
-        let buttonIcon = 'fa-ellipsis-v';
-        let buttonAction = 'details'; // Hành động mặc định khi click
-
-        // Ví dụ logic trạng thái đơn giản (bạn cần làm phức tạp hơn dựa trên dữ liệu thực tế)
-        if (model.name.toLowerCase().includes('detection')) {
-             status = 'Active'; statusColor = 'green'; buttonText = 'Deploy'; buttonIcon = 'fa-play'; buttonAction = 'deploy';
-        } else if (model.name.toLowerCase().includes('recognition')) {
-             status = 'Active'; statusColor = 'green'; buttonText = 'Deploy'; buttonIcon = 'fa-play'; buttonAction = 'deploy';
-        } else if (model.name.toLowerCase().includes('matching')) {
-             status = 'Pending'; statusColor = 'yellow'; buttonText = 'Review'; buttonIcon = 'fa-pause'; buttonAction = 'review';
-        } else if (model.name.toLowerCase().includes('intruder')) {
-             status = 'Inactive'; statusColor = 'red'; buttonText = 'Activate'; buttonIcon = 'fa-power-off'; buttonAction = 'activate';
+    function formatDateTimeForInput(isoString) {
+        if (!isoString) return '';
+        try {
+            return isoString.substring(0, 16); // YYYY-MM-DDTHH:mm
+        } catch (e) {
+            // console.error("Error formatting date for input:", isoString, e);
+            return '';
         }
+    }
 
-        // Mapping màu Tailwind
-        const statusColors = {
-            green: 'bg-green-100 text-green-800',
-            yellow: 'bg-yellow-100 text-yellow-800',
-            red: 'bg-red-100 text-red-800',
-            gray: 'bg-gray-100 text-gray-800'
+    function showFeedback(message, isError = false) {
+        if (!feedbackMessage) return;
+        feedbackMessage.textContent = message;
+        feedbackMessage.className = `mb-4 p-3 rounded text-sm ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+        feedbackMessage.classList.remove('hidden');
+        setTimeout(() => {
+            if (feedbackMessage) {
+                feedbackMessage.classList.add('hidden');
+                feedbackMessage.textContent = '';
+                feedbackMessage.className = 'mb-4 hidden';
+            }
+        }, 5000);
+    }
+
+    // Hàm Debounce
+    function debounce(func, delay) {
+        let timeoutId;
+        return function(...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
         };
-        const progressBarColors = {
-             green: 'bg-green-500',
-             blue: 'bg-blue-500', // Dùng cho recognition
-             yellow: 'bg-yellow-500',
-             red: 'bg-red-500',
-             purple: 'bg-purple-500', // Dùng cho matching
-             teal: 'bg-teal-500', // Dùng cho multi-finger
-             gray: 'bg-gray-400'
-        };
-        // Chọn màu progress bar dựa trên loại hoặc tên (ví dụ)
-        let progressColorClass = progressBarColors.gray;
-        if (model.type === 'REGION_DETECTOR') progressColorClass = progressBarColors.blue;
-        if (model.type === 'FINGERPRINT_CLASSIFIER') progressColorClass = progressBarColors.purple;
-        if (model.name.toLowerCase().includes('multi-finger')) progressColorClass = progressBarColors.teal;
+    }
 
 
-        // Tạo HTML bằng template literal
+    // --- Core Logic Functions ---
+    function createModelCard(model) {
+        // Logic xác định status, color, button text/icon
+        let status = 'Active'; let statusColor = 'green'; let buttonText = 'Deploy'; let buttonIcon = 'fa-play'; let primaryAction = 'deploy';
+        const modelNameLower = model.name ? model.name.toLowerCase() : '';
+        if (modelNameLower.includes('matching')) { status = 'Pending'; statusColor = 'yellow'; buttonText = 'Review'; buttonIcon = 'fa-pause'; primaryAction = 'review';}
+        else if (modelNameLower.includes('intruder')) { status = 'Inactive'; statusColor = 'red'; buttonText = 'Activate'; buttonIcon = 'fa-power-off'; primaryAction = 'activate';}
+
+        const statusColors = { green: 'bg-green-100 text-green-800', yellow: 'bg-yellow-100 text-yellow-800', red: 'bg-red-100 text-red-800', gray: 'bg-gray-100 text-gray-800' };
+        const description = model.description ? model.description.substring(0, 50) + (model.description.length > 50 ? '...' : '') : 'No description';
+        const createdAtDate = model.createdAt ? formatDate(model.createdAt).split(',')[0] : 'N/A';
+        const trainedAtDate = formatDate(model.trainedAt);
+        const updatedAtDate = formatDate(model.updatedAt);
+
         return `
-            <div class="model-card bg-white rounded-lg shadow overflow-hidden transition duration-300 cursor-pointer" data-model-id="${model.id}">
+            <div class="model-card bg-white rounded-lg shadow overflow-hidden transition duration-300 cursor-pointer flex flex-col h-full" data-model-id="${model.id || ''}">
                 <div class="p-4 border-b">
                     <div class="flex justify-between items-start">
                         <div>
-                            <h3 class="font-bold text-lg">${model.name || 'N/A'}</h3>
-                            <p class="text-gray-500 text-sm">${model.description ? model.description.substring(0, 50) + (model.description.length > 50 ? '...' : '') : 'No description'}</p>
+                            <h3 class="font-bold text-lg mb-1 truncate" title="${model.name || ''}">${model.name || 'N/A'}</h3>
+                            <p class="text-gray-500 text-sm h-10 overflow-hidden">${description}</p>
                         </div>
-                        <span class="px-2 py-1 ${statusColors[statusColor]} text-xs rounded-full">${status}</span>
+                        <span class="px-2 py-1 ${statusColors[statusColor] || statusColors.gray} text-xs rounded-full flex-shrink-0 ml-2">${status}</span>
                     </div>
                 </div>
-                <div class="p-4">
+                <div class="p-4 flex flex-col flex-grow">
                     <div class="flex justify-between mb-3">
-                        <div>
-                            <p class="text-gray-500 text-sm">Type</p>
-                            <p class="font-bold">${model.type || 'N/A'}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500 text-sm">Version</p>
-                            <p class="font-bold">${model.version || 'N/A'}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500 text-sm">Created</p>
-                            <p class="font-bold">${formatDate(model.createdAt).split(',')[0]}</p> <!-- Chỉ lấy ngày -->
-                        </div>
+                        <div><p class="text-gray-500 text-sm">Type</p><p class="font-bold text-sm truncate">${model.type || 'N/A'}</p></div>
+                        <div><p class="text-gray-500 text-sm">Version</p><p class="font-bold text-sm truncate">${model.version || 'N/A'}</p></div>
+                        <div><p class="text-gray-500 text-sm">Created</p><p class="font-bold text-sm">${createdAtDate}</p></div>
                     </div>
-                    <!-- Tạm ẩn progress bar vì thiếu accuracy -->
-                    <!--
-                    <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
-                        <div class="${progressColorClass} h-2 rounded-full" style="width: 95%"></div>
-                    </div>
-                    -->
-                    <div class="flex justify-between text-sm text-gray-500 mb-4 mt-4"> <!-- Thêm mt-4 nếu bỏ progress bar -->
-                        <span>Trained: ${formatDate(model.trainedAt)}</span>
-                        <span>Updated: ${formatDate(model.updatedAt)}</span>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button data-action="${buttonAction}" data-model-id="${model.id}" class="flex-1 py-2 ${status === 'Pending' || status === 'Inactive' ? 'bg-gray-500 hover:bg-gray-600' : 'bg-indigo-600 hover:bg-indigo-700'} text-white rounded">
-                            <i class="fas ${buttonIcon} mr-1"></i> ${buttonText}
-                        </button>
-                        <button data-action="details" data-model-id="${model.id}" class="p-2 border rounded hover:bg-gray-50 model-details-button">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
+                    <div class="flex-grow flex flex-col justify-end">
+                        <div class="flex justify-between text-sm text-gray-500 mb-4 mt-auto">
+                            <span>Trained: ${trainedAtDate}</span>
+                            <span>Updated: ${updatedAtDate}</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button data-action="${primaryAction}" data-model-id="${model.id || ''}" class="flex-1 py-2 ${status === 'Pending' || status === 'Inactive' ? 'bg-gray-500 hover:bg-gray-600' : 'bg-indigo-600 hover:bg-indigo-700'} text-white rounded text-sm">
+                                <i class="fas ${buttonIcon} mr-1"></i> ${buttonText}
+                            </button>
+                            <button data-action="details" data-model-id="${model.id || ''}" class="p-2 border rounded hover:bg-gray-50 model-details-button">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
     }
 
-    // --- Hàm cập nhật các ô thống kê ---
-    function updateStats(models) {
+    function sortModelsData(data, criteria) {
+        if (!Array.isArray(data)) return [];
+        const dataToSort = [...data];
+        switch (criteria) {
+            case 'name':
+                return dataToSort.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            case 'newest':
+            default:
+                return dataToSort.sort((a, b) => (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0));
+        }
+    }
+
+    function renderModels() {
+        if (!modelContainer || !addModelCardTemplate) {
+             console.error("Cannot render: Missing container or Add New template");
+             return;
+        }
+        modelContainer.innerHTML = ''; // Xóa hết card cũ
+
+        let dataToRender = [...filteredModelsData]; // Dùng dữ liệu đã lọc
+        dataToRender = sortModelsData(dataToRender, currentSortCriteria); // Sắp xếp
+
+        console.log(`Rendering ${dataToRender.length} models after filtering and sorting by ${currentSortCriteria}`);
+
+        if (dataToRender.length > 0) {
+            dataToRender.forEach(model => modelContainer.insertAdjacentHTML('beforeend', createModelCard(model)));
+        } else {
+            const searchTerm = searchInput ? searchInput.value.trim() : '';
+            const message = searchTerm ? `No models found matching "${searchTerm}".` : 'No models found.';
+            modelContainer.insertAdjacentHTML('beforeend', `<p class="text-center text-gray-500 col-span-full py-10">${message}</p>`);
+        }
+
+        modelContainer.appendChild(addModelCardTemplate.cloneNode(true));
+    }
+
+    function updateStats(models) { // Tính trên modelsData gốc
+        if (!Array.isArray(models)) models = [];
         const totalModels = models.length;
-        // Tính toán các chỉ số khác (ví dụ, cần thêm trường 'status' vào backend hoặc logic phức tạp hơn)
-        const activeModels = models.filter(m => m.name.toLowerCase().includes('detection') || m.name.toLowerCase().includes('recognition')).length; // Ví dụ đơn giản
-        const detectionModels = models.filter(m => m.type === 'REGION_DETECTOR').length;
-        const classifierModels = models.filter(m => m.type === 'FINGERPRINT_CLASSIFIER').length;
+        const activeModels = models.filter(m => m?.name && (m.name.toLowerCase().includes('detection') || m.name.toLowerCase().includes('recognition'))).length;
+        const detectionModels = models.filter(m => m?.type === 'REGION_DETECTOR').length;
+        const classifierModels = models.filter(m => m?.type === 'FINGERPRINT_CLASSIFIER').length;
 
-        document.getElementById('total-models-stat').textContent = totalModels;
-        document.getElementById('active-models-stat').textContent = activeModels; // Cập nhật stat active
-        document.getElementById('detection-models-stat').textContent = detectionModels;
-        document.getElementById('classifier-models-stat').textContent = classifierModels;
+        const totalEl = document.getElementById('total-models-stat');
+        const activeEl = document.getElementById('active-models-stat');
+        const detectionEl = document.getElementById('detection-models-stat');
+        const classifierEl = document.getElementById('classifier-models-stat');
+
+        if(totalEl) totalEl.textContent = totalModels;
+        if(activeEl) activeEl.textContent = activeModels;
+        if(detectionEl) detectionEl.textContent = detectionModels;
+        if(classifierEl) classifierEl.textContent = classifierModels;
     }
 
-    // --- Hàm hiển thị model trong modal ---
     function populateModal(modelId) {
-        const model = modelsData.find(m => m.id == modelId); // Tìm model trong mảng dữ liệu đã lưu
-        if (!model || !modal) return;
+        const model = modelsData.find(m => m && m.id == modelId); // Tìm trong data gốc
+        if (!model || !detailsModal) return;
 
-        document.getElementById('modal-model-title').textContent = `Details: ${model.name || 'N/A'}`;
-        document.getElementById('modal-model-name').textContent = model.name || 'N/A';
-        document.getElementById('modal-model-description').textContent = model.description || 'No description available.';
-        document.getElementById('modal-model-version').textContent = model.version || 'N/A';
-        document.getElementById('modal-model-type').textContent = model.type || 'N/A';
-        document.getElementById('modal-model-path').textContent = model.modelPath || 'N/A';
-        document.getElementById('modal-model-trained-at').textContent = formatDate(model.trainedAt);
-        document.getElementById('modal-model-created-at').textContent = formatDate(model.createdAt);
-        document.getElementById('modal-model-updated-at').textContent = formatDate(model.updatedAt);
+        const titleEl = document.getElementById('modal-model-title');
+        const nameEl = document.getElementById('modal-model-name');
+        const descEl = document.getElementById('modal-model-description');
+        const versionEl = document.getElementById('modal-model-version');
+        const typeEl = document.getElementById('modal-model-type');
+        const pathEl = document.getElementById('modal-model-path');
+        const trainedEl = document.getElementById('modal-model-trained-at');
+        const createdEl = document.getElementById('modal-model-created-at');
+        const updatedEl = document.getElementById('modal-model-updated-at');
 
-        // (Tùy chọn) Cập nhật các nút action trong modal dựa trên model.id hoặc trạng thái
-        // ...
+        if(titleEl) titleEl.textContent = `Details: ${model.name || 'N/A'}`;
+        if(nameEl) nameEl.textContent = model.name || 'N/A';
+        if(descEl) descEl.textContent = model.description || 'No description available.';
+        if(versionEl) versionEl.textContent = model.version || 'N/A';
+        if(typeEl) typeEl.textContent = model.type || 'N/A';
+        if(pathEl) pathEl.textContent = model.modelPath || 'N/A';
+        if(trainedEl) trainedEl.textContent = formatDate(model.trainedAt);
+        if(createdEl) createdEl.textContent = formatDate(model.createdAt);
+        if(updatedEl) updatedEl.textContent = formatDate(model.updatedAt);
 
-        modal.classList.remove('hidden'); // Hiển thị modal
+        const modalEditButton = document.getElementById('modal-edit-button');
+        const modalDeleteButton = document.getElementById('modal-delete-button');
+        if (modalEditButton) modalEditButton.dataset.modelId = modelId;
+        if (modalDeleteButton) modalDeleteButton.dataset.modelId = modelId;
+
+        detailsModal.classList.remove('hidden');
     }
 
+    function openAddModal() {
+        currentFormMode = 'add';
+        currentEditModelId = null;
+        if (!modelFormModal || !modelForm || !modalFormTitle || !modelIdInput) return;
+        modalFormTitle.textContent = 'Add New Model';
+        modelForm.reset();
+        modelIdInput.value = '';
+        modelFormModal.classList.remove('hidden');
+    }
 
-    // --- Hàm gọi API và render dữ liệu ---
-    async function loadModels() {
-        if (!modelContainer) {
-            console.error("Model container not found!");
+    function openEditModal(modelId) {
+        currentFormMode = 'edit';
+        currentEditModelId = modelId;
+        const model = modelsData.find(m => m && m.id == modelId); // Tìm trong data gốc
+
+        if (!model || !modelFormModal || !modelForm || !modalFormTitle || !modelIdInput ||
+            !modelNameInput || !modelVersionInput || !modelTypeInput || !modelPathInput ||
+            !modelDescriptionInput || !modelTrainedAtInput) {
+            showFeedback(`Error: Cannot open edit form. Missing data or elements for ID ${modelId}.`, true);
             return;
         }
-        modelContainer.innerHTML = ''; // Xóa nội dung cũ (trừ card Add New)
-        if(addNewModelCard) modelContainer.appendChild(addNewModelCard); // Thêm lại card Add New
 
-        // Hiển thị trạng thái loading (ví dụ)
+        if (detailsModal && !detailsModal.classList.contains('hidden')) {
+            detailsModal.classList.add('hidden');
+        }
+
+        modalFormTitle.textContent = 'Edit Model';
+        modelIdInput.value = model.id;
+        modelNameInput.value = model.name || '';
+        modelVersionInput.value = model.version || '';
+        modelTypeInput.value = model.type || '';
+        modelPathInput.value = model.modelPath || '';
+        modelDescriptionInput.value = model.description || '';
+        modelTrainedAtInput.value = formatDateTimeForInput(model.trainedAt);
+
+        modelFormModal.classList.remove('hidden');
+    }
+
+    function closeFormModal() {
+        if (modelFormModal) modelFormModal.classList.add('hidden');
+    }
+
+    async function handleFormSubmit(event) {
+        event.preventDefault();
+        if (!modelForm || !saveModelButton) return;
+
+        saveModelButton.disabled = true;
+        saveModelButton.textContent = 'Saving...';
+
+        const formData = new FormData(modelForm);
+        const data = Object.fromEntries(formData.entries());
+        if (currentFormMode === 'add') delete data.id;
+        if (!data.trainedAt) delete data.trainedAt;
+
+        try {
+            const url = currentFormMode === 'add' ? apiUrl : `${apiUrl}/${currentEditModelId}`;
+            const method = currentFormMode === 'add' ? 'POST' : 'PUT';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                 let errorText = `Status: ${response.status}`;
+                 try {
+                     const errorBody = await response.json();
+                     errorText = errorBody.message || JSON.stringify(errorBody);
+                 } catch (e) {
+                     errorText = await response.text();
+                 }
+                throw new Error(`API Error: ${errorText.substring(0, 150)}`);
+            }
+
+            const successMessage = currentFormMode === 'add' ? 'Model added successfully!' : 'Model updated successfully!';
+            showFeedback(successMessage);
+            closeFormModal();
+            await loadModels();
+
+        } catch (error) {
+            console.error("Error saving model:", error);
+            showFeedback(`Error saving model: ${error.message}`, true);
+        } finally {
+            if (saveModelButton) {
+                saveModelButton.disabled = false;
+                saveModelButton.textContent = 'Save Model';
+            }
+        }
+    }
+
+    async function handleDeleteModel(modelId) {
+        if (!modelId) return;
+        const modelToDelete = modelsData.find(m => m && m.id == modelId);
+        const modelName = modelToDelete ? modelToDelete.name : `ID ${modelId}`;
+
+        if (!confirm(`Are you sure you want to delete model "${modelName}"?`)) return;
+
+        if (detailsModal && !detailsModal.classList.contains('hidden')) {
+            const modalEditBtn = document.getElementById('modal-edit-button');
+            if (modalEditBtn && modalEditBtn.dataset.modelId == modelId) {
+                detailsModal.classList.add('hidden');
+            }
+        }
+
+        try {
+            const response = await fetch(`${apiUrl}/${modelId}`, { method: 'DELETE' });
+
+            if (!response.ok) {
+                let errorText = `Status: ${response.status}`;
+                 try {
+                     const errorBody = await response.json();
+                     errorText = errorBody.message || JSON.stringify(errorBody);
+                 } catch (e) {
+                     errorText = await response.text();
+                 }
+                if (response.status === 404) errorText = `Model with ID ${modelId} not found.`;
+                throw new Error(`API Error: ${errorText.substring(0,150)}`);
+            }
+
+            showFeedback(`Model "${modelName}" deleted successfully!`);
+            await loadModels();
+
+        } catch (error) {
+            console.error("Error deleting model:", error);
+            showFeedback(`Error deleting model: ${error.message}`, true);
+        }
+    }
+
+    function handleSearch() {
+        if (!searchInput) return;
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        console.log("Filtering models with term:", searchTerm);
+
+        if (searchTerm === '') {
+            filteredModelsData = [...modelsData];
+        } else {
+            filteredModelsData = modelsData.filter(model => {
+                const nameMatch = model.name && model.name.toLowerCase().includes(searchTerm);
+                const descriptionMatch = model.description && model.description.toLowerCase().includes(searchTerm);
+                return nameMatch || descriptionMatch;
+            });
+        }
+        renderModels();
+    }
+
+
+    async function loadModels() {
+        if (!modelContainer || !addModelCardTemplate) { return; }
+
+        modelContainer.innerHTML = '';
         const loadingIndicator = document.createElement('p');
+        loadingIndicator.id = 'loading-indicator';
+        loadingIndicator.className = 'text-center text-gray-500 col-span-full py-10';
         loadingIndicator.textContent = 'Loading models...';
-        loadingIndicator.classList.add('text-center', 'text-gray-500', 'col-span-full', 'py-10'); // Đảm bảo chiếm toàn bộ grid
-        modelContainer.prepend(loadingIndicator); // Thêm vào đầu
+        modelContainer.appendChild(loadingIndicator);
+        modelContainer.appendChild(addModelCardTemplate.cloneNode(true));
 
         try {
             const response = await fetch(apiUrl);
+            const loadingEl = document.getElementById('loading-indicator');
+            if(loadingEl) loadingEl.remove();
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            modelsData = await response.json(); // Lưu dữ liệu vào biến toàn cục
-
-            // Xóa loading indicator
-            loadingIndicator.remove();
-
-            if (modelsData && modelsData.length > 0) {
-                 modelsData.forEach(model => {
-                    const cardHtml = createModelCard(model);
-                    // Chèn card mới vào *trước* card "Add New"
-                    if(addNewModelCard) {
-                        modelContainer.insertAdjacentHTML('beforeend', cardHtml); // Chèn vào cuối trước khi có card Add New
-                    } else {
-                        modelContainer.insertAdjacentHTML('beforeend', cardHtml); // Nếu không có card Add New thì cứ chèn vào cuối
-                    }
-                });
-                if(addNewModelCard) modelContainer.appendChild(addNewModelCard); // Đảm bảo Add New luôn ở cuối
-
-            } else {
-                modelContainer.innerHTML = '<p class="text-center text-gray-500 col-span-full py-10">No models found.</p>';
-                 if(addNewModelCard) modelContainer.appendChild(addNewModelCard);
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}. ${errorText.substring(0,100)}`);
             }
 
-            // Cập nhật các ô thống kê
+            modelsData = await response.json();
+            filteredModelsData = [...modelsData];
+            renderModels();
             updateStats(modelsData);
 
         } catch (error) {
-             // Xóa loading indicator nếu có lỗi
-            loadingIndicator.remove();
             console.error('Error fetching models:', error);
-            modelContainer.innerHTML = `<p class="text-center text-red-500 col-span-full py-10">Error loading models: ${error.message}</p>`;
-             if(addNewModelCard) modelContainer.appendChild(addNewModelCard);
-            // Xóa dữ liệu stats nếu lỗi
+            const loadingEl = document.getElementById('loading-indicator');
+            if(loadingEl) loadingEl.remove();
+            const errorP = document.createElement('p');
+            errorP.className = 'text-center text-red-500 col-span-full py-10';
+            errorP.textContent = `Error loading models: ${error.message}`;
+            const currentAddNewCard = modelContainer.querySelector('#add-model-card');
+             if(currentAddNewCard) { modelContainer.insertBefore(errorP, currentAddNewCard); }
+             else { modelContainer.appendChild(errorP); }
             updateStats([]);
         }
     }
 
-    // --- Gắn sự kiện ---
+    // --- Event Listeners Initialization ---
+    if (addModelButton) addModelButton.addEventListener('click', openAddModal);
+    if (closeFormModalButton) closeFormModalButton.addEventListener('click', closeFormModal);
+    if (cancelFormModalButton) cancelFormModalButton.addEventListener('click', closeFormModal);
+    if (modelForm) modelForm.addEventListener('submit', handleFormSubmit);
 
-    // Sự kiện click vào nút đóng modal
-    if (closeModal) {
-        closeModal.addEventListener('click', function() {
-            if (modal) {
-                modal.classList.add('hidden');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (event) => {
+            currentSortCriteria = event.target.value;
+            renderModels();
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(handleSearch, 300));
+    }
+
+    if (closeDetailsModalButton && detailsModal) {
+        closeDetailsModalButton.addEventListener('click', () => detailsModal.classList.add('hidden'));
+    }
+    if (detailsModal) {
+        detailsModal.addEventListener('click', (e) => {
+            if (e.target === detailsModal) detailsModal.classList.add('hidden');
+        });
+    }
+
+    if (detailsModal) {
+        detailsModal.addEventListener('click', function(event) {
+            const editButton = event.target.closest('#modal-edit-button');
+            const deleteButton = event.target.closest('#modal-delete-button');
+            const deployButton = event.target.closest('#modal-deploy-button');
+
+            if (editButton) {
+                const modelId = editButton.dataset.modelId;
+                if(modelId) openEditModal(modelId);
+            } else if (deleteButton) {
+                const modelId = deleteButton.dataset.modelId;
+                 if(modelId) handleDeleteModel(modelId);
+            } else if (deployButton) {
+                 const modelId = deployButton.dataset.modelId;
+                 if(modelId) alert(`Deploying model ${modelId}... (logic not implemented)`);
             }
         });
     }
 
-    // Sự kiện click ra ngoài modal để đóng
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.classList.add('hidden');
-            }
-        });
-    }
-
-    // Sử dụng Event Delegation cho các nút trên card (vì card được tạo động)
-    if (modelContainer) {
+   if (modelContainer) {
         modelContainer.addEventListener('click', function(event) {
-            const targetButton = event.target.closest('button[data-action]'); // Tìm nút cha gần nhất có data-action
-            const targetCard = event.target.closest('.model-card[data-model-id]'); // Tìm card cha gần nhất có data-model-id
+            const detailsButton = event.target.closest('button[data-action="details"]');
+            const primaryButton = event.target.closest('button[data-action]'); // Bắt mọi nút có data-action
+            const targetCard = event.target.closest('.model-card[data-model-id]');
+            const addCardTarget = event.target.closest('#add-model-card');
 
-            if (targetButton) {
-                const action = targetButton.dataset.action;
-                const modelId = targetButton.dataset.modelId;
+            if (addCardTarget) { // Ưu tiên xử lý card Add New
+                 console.log("Add Model Card clicked via delegation");
+                 openAddModal();
+                 return;
+            }
 
-                if (action === 'details') {
-                    console.log(`Show details for model ID: ${modelId}`);
+            if (detailsButton) {
+                const modelId = detailsButton.dataset.modelId;
+                if(modelId) {
+                    console.log(`Details button (...) clicked on card for ID: ${modelId}`);
                     populateModal(modelId);
-                } else if (action === 'deploy') {
-                    console.log(`Deploy model ID: ${modelId}`);
-                    alert(`Deploying model ${modelId}... (logic not implemented)`);
-                    // Thêm logic gọi API deploy
-                } else if (action === 'activate') {
-                     console.log(`Activate model ID: ${modelId}`);
-                     alert(`Activating model ${modelId}... (logic not implemented)`);
-                     // Thêm logic gọi API activate
-                } else if (action === 'review') {
-                    console.log(`Review model ID: ${modelId}`);
-                     populateModal(modelId); // Có thể mở modal để review
                 }
-                // Ngăn sự kiện click lan lên card để mở modal (nếu không muốn)
                 event.stopPropagation();
-
+            } else if (primaryButton && primaryButton.dataset.action !== 'details') {
+                 const modelId = primaryButton.dataset.modelId;
+                 const action = primaryButton.dataset.action;
+                 const actionText = primaryButton.textContent.trim();
+                 if(modelId) {
+                    console.log(`Action button (${action}) clicked on card for ID: ${modelId}`);
+                    alert(`${actionText} model ${modelId}... (logic not implemented)`);
+                 }
+                 event.stopPropagation();
             } else if (targetCard && !event.target.closest('button')) {
-                // Chỉ mở modal nếu click vào card nhưng không phải là click vào nút bên trong card
-                const modelId = targetCard.dataset.modelId;
-                 console.log(`Card clicked, show details for model ID: ${modelId}`);
-                populateModal(modelId);
+                 const modelId = targetCard.dataset.modelId;
+                 if(modelId) {
+                     console.log(`Card clicked (not button): ModelID=${modelId}`);
+                    populateModal(modelId);
+                 }
             }
         });
     }
 
-    // --- Tải dữ liệu lần đầu ---
     loadModels();
-
 });
