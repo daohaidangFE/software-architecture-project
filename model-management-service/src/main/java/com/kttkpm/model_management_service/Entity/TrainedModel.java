@@ -42,6 +42,10 @@ public class TrainedModel {
     @Column(name = "trained_at")
     private LocalDateTime trainedAt; // Thời điểm huấn luyện
 
+    @Enumerated(EnumType.STRING) // Lưu tên Enum vào DB
+    @Column(nullable = false, length = 20)
+    private ModelStatus status; // Giá trị mặc định là PENDING
+
     @CreationTimestamp // Tự động gán thời gian tạo
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

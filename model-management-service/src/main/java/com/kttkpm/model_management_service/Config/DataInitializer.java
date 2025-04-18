@@ -1,5 +1,6 @@
 package com.kttkpm.model_management_service.Config;
 
+import com.kttkpm.model_management_service.Entity.ModelStatus;
 import com.kttkpm.model_management_service.Entity.ModelType;
 import com.kttkpm.model_management_service.Entity.TrainedModel;
 import com.kttkpm.model_management_service.Repository.TrainedModelRepository;
@@ -45,6 +46,7 @@ public class DataInitializer implements CommandLineRunner { // Implement Command
                 .modelPath("/models/storage/detect_v4_2_1.h5")
                 .description("Fingerprint region identification model based on CNN+ResNet50.")
                 .trainedAt(LocalDateTime.of(2023, 6, 15, 10, 30, 0))
+                .status(ModelStatus.ACTIVE) // Gán trạng thái cụ thể
                 // createdAt và updatedAt sẽ được tự động tạo
                 .build();
 
@@ -55,6 +57,7 @@ public class DataInitializer implements CommandLineRunner { // Implement Command
                 .modelPath("/models/storage/person_rec_v3_1_5.pb")
                 .description("Employee identification model using extracted fingerprint features.")
                 .trainedAt(LocalDateTime.of(2023, 5, 22, 14, 0, 0))
+                .status(ModelStatus.ERROR)
                 .build();
 
         TrainedModel model3 = TrainedModel.builder()
@@ -64,6 +67,7 @@ public class DataInitializer implements CommandLineRunner { // Implement Command
                 .modelPath("/models/storage/fp_match_v2_8_3.onnx")
                 .description("Model for 1:1 fingerprint comparison. (Status: Pending Deployment)") // Mô tả có thể chứa trạng thái
                 .trainedAt(LocalDateTime.of(2023, 4, 10, 9, 15, 0))
+                .status(ModelStatus.INACTIVE)
                 .build();
 
         TrainedModel model4 = TrainedModel.builder()
@@ -73,6 +77,7 @@ public class DataInitializer implements CommandLineRunner { // Implement Command
                 .modelPath("/models/storage/intruder_detect_v1_5_2.pt")
                 .description("Basic model for detecting unauthorized access attempts. (Status: Inactive)")
                 .trainedAt(LocalDateTime.of(2023, 3, 28, 16, 45, 0))
+                .status(ModelStatus.TRAINING)
                 .build();
 
         TrainedModel model5 = TrainedModel.builder()
@@ -82,6 +87,7 @@ public class DataInitializer implements CommandLineRunner { // Implement Command
                 .modelPath("/models/storage/multi_finger_v3_0_0.tflite")
                 .description("Detects multiple fingerprint regions in a single image frame.")
                 .trainedAt(LocalDateTime.of(2023, 7, 5, 11, 0, 0))
+                .status(ModelStatus.ACTIVE)
                 .build();
 
         // Lưu danh sách các model vào database

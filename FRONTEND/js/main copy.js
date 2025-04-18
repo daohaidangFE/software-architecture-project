@@ -2,34 +2,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- DOM Element References ---
     const modelContainer = document.getElementById('model-card-container');
     const detailsModal = document.getElementById('modelDetailsModal');
-    const closeDetailsModalButton = document.getElementById('closeModal'); // Nút đóng modal chi tiết (X trên modal)
-
-    // Form Modal Elements
+    const closeDetailsModalButton = document.getElementById('closeModal');
     const modelFormModal = document.getElementById('modelFormModal');
-    const closeFormModalButton = document.getElementById('closeFormModal'); // Nút X trên form modal
-    const cancelFormModalButton = document.getElementById('cancelFormModal'); // Nút Cancel dưới form
+    const closeFormModalButton = document.getElementById('closeFormModal'); // Assuming this is the correct ID for the 'X' button on the form modal
+    const cancelFormModalButton = document.getElementById('cancelFormModal');
     const modelForm = document.getElementById('model-form');
     const modalFormTitle = document.getElementById('modal-form-title');
-    const modelIdInput = document.getElementById('model-id'); // Input ẩn
+    const modelIdInput = document.getElementById('model-id');
     const modelNameInput = document.getElementById('model-name');
     const modelVersionInput = document.getElementById('model-version');
     const modelTypeInput = document.getElementById('model-type');
-    const modelPathInput = document.getElementById('model-path');
     const modelDescriptionInput = document.getElementById('model-description');
     const modelTrainedAtInput = document.getElementById('model-trained-at');
     const saveModelButton = document.getElementById('saveModelButton');
-
-    // Action Elements
-    const addModelButton = document.getElementById('add-model-button'); // Nút "Add New Model" trên thanh actions
-    const addModelCardTemplate = document.getElementById('add-model-card'); // Card template dashed
+    const addModelButton = document.getElementById('add-model-button');
+    const importModelButton = document.getElementById('import-model-button');
+    const exportAllButton = document.getElementById('export-all-button');
+    const addModelCardTemplate = document.getElementById('add-model-card');
     const sortSelect = document.getElementById('sort-select');
     const feedbackMessage = document.getElementById('feedback-message');
-    const searchInput = document.getElementById('search-input'); // Biến cho search
+    const searchInput = document.getElementById('search-input');
+    const fileInput = document.getElementById('model-file-input');
+    const fileRequiredIndicator = document.getElementById('file-required-indicator');
+    const fileOptionalIndicator = document.getElementById('file-optional-indicator');
+    const currentFileInfo = document.getElementById('current-file-info');
 
     // --- State Variables ---
     const apiUrl = 'http://localhost:8081/api/v1/models';
-    let modelsData = []; // Dữ liệu gốc từ API, luôn giữ bản đầy đủ
-    let filteredModelsData = []; // Dữ liệu đã được lọc bởi search (nếu có)
+    let modelsData = [];
+    let filteredModelsData = [];
     let currentFormMode = 'add';
     let currentEditModelId = null;
     let currentSortCriteria = 'newest';
@@ -40,20 +41,13 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
             return new Date(dateTimeString).toLocaleDateString('vi-VN', options);
-        } catch (e) {
-            // console.error("Error formatting date:", dateTimeString, e);
-            return dateTimeString; // Giữ nguyên nếu lỗi
-        }
+        } catch (e) { return dateTimeString; }
     }
 
     function formatDateTimeForInput(isoString) {
         if (!isoString) return '';
-        try {
-            return isoString.substring(0, 16); // YYYY-MM-DDTHH:mm
-        } catch (e) {
-            // console.error("Error formatting date for input:", isoString, e);
-            return '';
-        }
+        try { return isoString.substring(0, 16); }
+        catch (e) { return ''; }
     }
 
     function showFeedback(message, isError = false) {
@@ -70,28 +64,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    // Hàm Debounce
     function debounce(func, delay) {
         let timeoutId;
         return function(...args) {
             clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-                func.apply(this, args);
-            }, delay);
+            timeoutId = setTimeout(() => { func.apply(this, args); }, delay);
         };
     }
 
-
     // --- Core Logic Functions ---
     function createModelCard(model) {
-        // Logic xác định status, color, button text/icon
         let status = 'Active'; let statusColor = 'green'; let buttonText = 'Deploy'; let buttonIcon = 'fa-play'; let primaryAction = 'deploy';
         const modelNameLower = model.name ? model.name.toLowerCase() : '';
         if (modelNameLower.includes('matching')) { status = 'Pending'; statusColor = 'yellow'; buttonText = 'Review'; buttonIcon = 'fa-pause'; primaryAction = 'review';}
         else if (modelNameLower.includes('intruder')) { status = 'Inactive'; statusColor = 'red'; buttonText = 'Activate'; buttonIcon = 'fa-power-off'; primaryAction = 'activate';}
 
         const statusColors = { green: 'bg-green-100 text-green-800', yellow: 'bg-yellow-100 text-yellow-800', red: 'bg-red-100 text-red-800', gray: 'bg-gray-100 text-gray-800' };
-        const description = model.description ? model.description.substring(0, 50) + (model.description.length > 50 ? '...' : '') : 'No description';
+        const description = model.description ? model.description.substring(0, 60) + (model.description.length > 60 ? '...' : '') : 'No description';
         const createdAtDate = model.createdAt ? formatDate(model.createdAt).split(',')[0] : 'N/A';
         const trainedAtDate = formatDate(model.trainedAt);
         const updatedAtDate = formatDate(model.updatedAt);
@@ -100,11 +89,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="model-card bg-white rounded-lg shadow overflow-hidden transition duration-300 cursor-pointer flex flex-col h-full" data-model-id="${model.id || ''}">
                 <div class="p-4 border-b">
                     <div class="flex justify-between items-start">
-                        <div>
+                        <div class="flex-grow pr-2">
                             <h3 class="font-bold text-lg mb-1 truncate" title="${model.name || ''}">${model.name || 'N/A'}</h3>
                             <p class="text-gray-500 text-sm h-10 overflow-hidden">${description}</p>
                         </div>
-                        <span class="px-2 py-1 ${statusColors[statusColor] || statusColors.gray} text-xs rounded-full flex-shrink-0 ml-2">${status}</span>
+                        <span class="px-2 py-1 ${statusColors[statusColor] || statusColors.gray} text-xs rounded-full flex-shrink-0">${status}</span>
                     </div>
                 </div>
                 <div class="p-4 flex flex-col flex-grow">
@@ -149,10 +138,10 @@ document.addEventListener('DOMContentLoaded', function() {
              console.error("Cannot render: Missing container or Add New template");
              return;
         }
-        modelContainer.innerHTML = ''; // Xóa hết card cũ
+        modelContainer.innerHTML = '';
 
-        let dataToRender = [...filteredModelsData]; // Dùng dữ liệu đã lọc
-        dataToRender = sortModelsData(dataToRender, currentSortCriteria); // Sắp xếp
+        let dataToRender = [...filteredModelsData];
+        dataToRender = sortModelsData(dataToRender, currentSortCriteria);
 
         console.log(`Rendering ${dataToRender.length} models after filtering and sorting by ${currentSortCriteria}`);
 
@@ -163,11 +152,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const message = searchTerm ? `No models found matching "${searchTerm}".` : 'No models found.';
             modelContainer.insertAdjacentHTML('beforeend', `<p class="text-center text-gray-500 col-span-full py-10">${message}</p>`);
         }
-
         modelContainer.appendChild(addModelCardTemplate.cloneNode(true));
     }
 
-    function updateStats(models) { // Tính trên modelsData gốc
+    function updateStats(models) {
         if (!Array.isArray(models)) models = [];
         const totalModels = models.length;
         const activeModels = models.filter(m => m?.name && (m.name.toLowerCase().includes('detection') || m.name.toLowerCase().includes('recognition'))).length;
@@ -186,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function populateModal(modelId) {
-        const model = modelsData.find(m => m && m.id == modelId); // Tìm trong data gốc
+        const model = modelsData.find(m => m && m.id == modelId);
         if (!model || !detailsModal) return;
 
         const titleEl = document.getElementById('modal-model-title');
@@ -211,30 +199,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const modalEditButton = document.getElementById('modal-edit-button');
         const modalDeleteButton = document.getElementById('modal-delete-button');
+        const modalExportButton = document.getElementById('modal-export-button'); // Lấy nút Export
+        const modalDeployButton = document.getElementById('modal-deploy-button');
         if (modalEditButton) modalEditButton.dataset.modelId = modelId;
         if (modalDeleteButton) modalDeleteButton.dataset.modelId = modelId;
+        if (modalExportButton) {
+            modalExportButton.dataset.modelId = modelId;
+            modalExportButton.disabled = false; // Kích hoạt nút Export khi có model ID
+            console.log("Assigned modelId", modelId, "to Export button and enabled it"); // Thêm log
+        } else { console.warn("Export button inside modal not found"); }
 
+         // Ví dụ: Kích hoạt/Vô hiệu hóa nút Deploy dựa trên trạng thái (tạm thời cứ enable)
+         if (modalDeployButton) {
+             modalDeployButton.dataset.modelId = modelId;
+             modalDeployButton.disabled = false; // Ví dụ: luôn enable deploy
+             console.log("Assigned modelId", modelId, "to Deploy button and enabled it");
+         } else { console.warn("Deploy button inside modal not found"); }
         detailsModal.classList.remove('hidden');
     }
 
     function openAddModal() {
         currentFormMode = 'add';
         currentEditModelId = null;
-        if (!modelFormModal || !modelForm || !modalFormTitle || !modelIdInput) return;
+        if (!modelFormModal || !modelForm || !modalFormTitle || !modelIdInput || !fileInput || !fileRequiredIndicator || !fileOptionalIndicator || !currentFileInfo) return;
+
         modalFormTitle.textContent = 'Add New Model';
         modelForm.reset();
         modelIdInput.value = '';
+
+        fileInput.required = true;
+        if(fileRequiredIndicator) fileRequiredIndicator.classList.remove('hidden');
+        if(fileOptionalIndicator) fileOptionalIndicator.classList.add('hidden');
+        if(currentFileInfo) currentFileInfo.classList.add('hidden');
+        if(currentFileInfo) currentFileInfo.textContent = '';
+
         modelFormModal.classList.remove('hidden');
     }
 
     function openEditModal(modelId) {
         currentFormMode = 'edit';
         currentEditModelId = modelId;
-        const model = modelsData.find(m => m && m.id == modelId); // Tìm trong data gốc
+        const model = modelsData.find(m => m && m.id == modelId);
 
         if (!model || !modelFormModal || !modelForm || !modalFormTitle || !modelIdInput ||
-            !modelNameInput || !modelVersionInput || !modelTypeInput || !modelPathInput ||
-            !modelDescriptionInput || !modelTrainedAtInput) {
+            !modelNameInput || !modelVersionInput || !modelTypeInput ||
+            !modelDescriptionInput || !modelTrainedAtInput || !fileInput ||
+            !fileRequiredIndicator || !fileOptionalIndicator || !currentFileInfo) {
             showFeedback(`Error: Cannot open edit form. Missing data or elements for ID ${modelId}.`, true);
             return;
         }
@@ -248,28 +258,60 @@ document.addEventListener('DOMContentLoaded', function() {
         modelNameInput.value = model.name || '';
         modelVersionInput.value = model.version || '';
         modelTypeInput.value = model.type || '';
-        modelPathInput.value = model.modelPath || '';
         modelDescriptionInput.value = model.description || '';
         modelTrainedAtInput.value = formatDateTimeForInput(model.trainedAt);
+
+        fileInput.required = false;
+        fileInput.value = '';
+        if(fileRequiredIndicator) fileRequiredIndicator.classList.add('hidden');
+        if(fileOptionalIndicator) fileOptionalIndicator.classList.remove('hidden');
+
+        if(currentFileInfo) {
+            if (model.modelPath) {
+                currentFileInfo.textContent = `Current file: ${model.modelPath}. Choose a new file to replace it.`;
+                currentFileInfo.classList.remove('hidden');
+            } else {
+                currentFileInfo.textContent = 'No current file associated.';
+                currentFileInfo.classList.remove('hidden');
+            }
+        }
+
 
         modelFormModal.classList.remove('hidden');
     }
 
     function closeFormModal() {
         if (modelFormModal) modelFormModal.classList.add('hidden');
+         if (fileInput) fileInput.value = '';
+         if(currentFileInfo) currentFileInfo.classList.add('hidden');
     }
 
     async function handleFormSubmit(event) {
         event.preventDefault();
-        if (!modelForm || !saveModelButton) return;
+        if (!modelForm || !saveModelButton || !fileInput) return;
+
+        const file = fileInput.files[0];
+
+        if (currentFormMode === 'add' && !file) {
+             showFeedback("Error: Model file is required when adding.", true);
+             return;
+        }
 
         saveModelButton.disabled = true;
         saveModelButton.textContent = 'Saving...';
 
-        const formData = new FormData(modelForm);
-        const data = Object.fromEntries(formData.entries());
-        if (currentFormMode === 'add') delete data.id;
-        if (!data.trainedAt) delete data.trainedAt;
+        const formData = new FormData();
+        if (file) {
+            formData.append('file', file);
+        }
+        formData.append('name', modelNameInput.value);
+        formData.append('version', modelVersionInput.value);
+        formData.append('type', modelTypeInput.value);
+        formData.append('description', modelDescriptionInput.value);
+        const trainedAtValue = modelTrainedAtInput.value;
+        if (trainedAtValue) {
+            formData.append('trainedAt', trainedAtValue);
+        }
 
         try {
             const url = currentFormMode === 'add' ? apiUrl : `${apiUrl}/${currentEditModelId}`;
@@ -277,22 +319,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const response = await fetch(url, {
                 method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+                body: formData,
             });
 
             if (!response.ok) {
                  let errorText = `Status: ${response.status}`;
-                 try {
-                     const errorBody = await response.json();
-                     errorText = errorBody.message || JSON.stringify(errorBody);
-                 } catch (e) {
-                     errorText = await response.text();
-                 }
+                 try { const errorBody = await response.json(); errorText = errorBody.message || JSON.stringify(errorBody); }
+                 catch (e) { errorText = await response.text(); }
                 throw new Error(`API Error: ${errorText.substring(0, 150)}`);
             }
 
-            const successMessage = currentFormMode === 'add' ? 'Model added successfully!' : 'Model updated successfully!';
+            const successMessage = currentFormMode === 'add' ? 'Model added/imported successfully!' : 'Model updated successfully!';
             showFeedback(successMessage);
             closeFormModal();
             await loadModels();
@@ -316,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!confirm(`Are you sure you want to delete model "${modelName}"?`)) return;
 
         if (detailsModal && !detailsModal.classList.contains('hidden')) {
-            const modalEditBtn = document.getElementById('modal-edit-button');
+             const modalEditBtn = detailsModal.querySelector('#modal-edit-button');
             if (modalEditBtn && modalEditBtn.dataset.modelId == modelId) {
                 detailsModal.classList.add('hidden');
             }
@@ -327,12 +364,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!response.ok) {
                 let errorText = `Status: ${response.status}`;
-                 try {
-                     const errorBody = await response.json();
-                     errorText = errorBody.message || JSON.stringify(errorBody);
-                 } catch (e) {
-                     errorText = await response.text();
-                 }
+                 try { const errorBody = await response.json(); errorText = errorBody.message || JSON.stringify(errorBody); }
+                 catch (e) { errorText = await response.text(); }
                 if (response.status === 404) errorText = `Model with ID ${modelId} not found.`;
                 throw new Error(`API Error: ${errorText.substring(0,150)}`);
             }
@@ -406,6 +439,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Event Listeners Initialization ---
     if (addModelButton) addModelButton.addEventListener('click', openAddModal);
+    if (importModelButton) {
+        importModelButton.addEventListener('click', openAddModal); // Gọi cùng hàm mở modal như Add New
+        console.log("Import Model Button listener attached."); // Thêm log
+    } else {
+        console.warn("Import Model Button not found!");
+    }
+    if (exportAllButton) {
+        exportAllButton.addEventListener('click', () => {
+            console.log("Exporting all models metadata to CSV...");
+            // Điều hướng đến endpoint CSV
+            window.location.href = `${apiUrl}/export/csv`;
+        });
+    } else {
+         console.warn("Export All button not found");
+    }
     if (closeFormModalButton) closeFormModalButton.addEventListener('click', closeFormModal);
     if (cancelFormModalButton) cancelFormModalButton.addEventListener('click', closeFormModal);
     if (modelForm) modelForm.addEventListener('submit', handleFormSubmit);
@@ -435,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const editButton = event.target.closest('#modal-edit-button');
             const deleteButton = event.target.closest('#modal-delete-button');
             const deployButton = event.target.closest('#modal-deploy-button');
-
+            const exportButton = event.target.closest('#modal-export-button');
             if (editButton) {
                 const modelId = editButton.dataset.modelId;
                 if(modelId) openEditModal(modelId);
@@ -445,6 +493,17 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (deployButton) {
                  const modelId = deployButton.dataset.modelId;
                  if(modelId) alert(`Deploying model ${modelId}... (logic not implemented)`);
+            } else if(exportButton) {
+                const modelId = exportButton.dataset.modelId;
+                if (modelId) {
+                    console.log(`Exporting model ID: ${modelId}`);
+                    window.location.href = `${apiUrl}/${modelId}/download`; // Điều hướng để tải
+                    // Kích hoạt lại nút Export nếu cần (sau khi logic enable/disable được thêm)
+                    // exportButton.disabled = false; // Ví dụ
+                } else { 
+                    console.error("No model ID found on export button inside modal");
+                    showFeedback("Error: Could not determine which model to export.", true); 
+                }
             }
         });
     }
@@ -452,11 +511,11 @@ document.addEventListener('DOMContentLoaded', function() {
    if (modelContainer) {
         modelContainer.addEventListener('click', function(event) {
             const detailsButton = event.target.closest('button[data-action="details"]');
-            const primaryButton = event.target.closest('button[data-action]'); // Bắt mọi nút có data-action
+            const primaryButton = event.target.closest('button[data-action]');
             const targetCard = event.target.closest('.model-card[data-model-id]');
             const addCardTarget = event.target.closest('#add-model-card');
 
-            if (addCardTarget) { // Ưu tiên xử lý card Add New
+            if (addCardTarget) {
                  console.log("Add Model Card clicked via delegation");
                  openAddModal();
                  return;
@@ -464,26 +523,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (detailsButton) {
                 const modelId = detailsButton.dataset.modelId;
-                if(modelId) {
-                    console.log(`Details button (...) clicked on card for ID: ${modelId}`);
-                    populateModal(modelId);
-                }
+                if(modelId) { populateModal(modelId); }
                 event.stopPropagation();
             } else if (primaryButton && primaryButton.dataset.action !== 'details') {
                  const modelId = primaryButton.dataset.modelId;
                  const action = primaryButton.dataset.action;
                  const actionText = primaryButton.textContent.trim();
-                 if(modelId) {
-                    console.log(`Action button (${action}) clicked on card for ID: ${modelId}`);
-                    alert(`${actionText} model ${modelId}... (logic not implemented)`);
-                 }
+                 if(modelId) { alert(`${actionText} model ${modelId}... (logic not implemented)`); }
                  event.stopPropagation();
             } else if (targetCard && !event.target.closest('button')) {
                  const modelId = targetCard.dataset.modelId;
-                 if(modelId) {
-                     console.log(`Card clicked (not button): ModelID=${modelId}`);
-                    populateModal(modelId);
-                 }
+                 if(modelId) { populateModal(modelId); }
             }
         });
     }

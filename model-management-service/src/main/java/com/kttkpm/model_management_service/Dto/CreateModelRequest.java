@@ -1,5 +1,6 @@
 package com.kttkpm.model_management_service.Dto;
 
+import com.kttkpm.model_management_service.Entity.ModelStatus;
 import com.kttkpm.model_management_service.Entity.ModelType;
 import jakarta.validation.constraints.NotBlank; // Sử dụng jakarta validation
 import jakarta.validation.constraints.NotNull;
@@ -28,11 +29,9 @@ public class CreateModelRequest {
     @NotNull(message = "Model type cannot be null")
     private ModelType type;
 
-    @NotBlank(message = "Model path cannot be blank")
-    @Size(max = 255, message = "Model path must be less than or equal to 255 characters")
-    private String modelPath;
-
     private String description;
 
     private LocalDateTime trainedAt;
+
+    private ModelStatus status;
 }

@@ -11,6 +11,7 @@
     <!-- Link tới file CSS tùy chỉnh -->
     <!-- *** KIỂM TRA LẠI ĐƯỜNG DẪN NÀY! Nếu style.css cùng thư mục với index.html, hãy dùng href="style.css" *** -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔑</text></svg>">
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="flex h-screen overflow-hidden">
@@ -46,7 +47,7 @@
                 <div>
                     <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-3">Statistics</h2>
                     <ul class="space-y-2">
-                        <li><a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700"><i class="fas fa-chart-bar"></i><span>Employee Stats</span></a></li>
+                        <li><a href="employee-stats.html" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700"><i class="fas fa-chart-bar"></i><span>Employee Stats</span></a></li>
                         <li><a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700"><i class="fas fa-chart-line"></i><span>Model Stats</span></a></li>
                     </ul>
                 </div>
@@ -63,7 +64,8 @@
                         <div class="relative">
                             <input type="text" id="search-input" placeholder="Search models..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                        </div>                        <div class="relative"><button class="p-2 rounded-full hover:bg-gray-100"><i class="fas fa-bell text-gray-600"></i><span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span></button></div>
+                        </div>
+                        <div class="relative"><button class="p-2 rounded-full hover:bg-gray-100"><i class="fas fa-bell text-gray-600"></i><span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span></button></div>
                         <div class="flex items-center space-x-2"><div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white"><span>AD</span></div><span class="font-medium">Admin</span></div>
                     </div>
                 </div>
@@ -73,11 +75,97 @@
             <main class="p-6">
                 <div id="feedback-message" class="mb-4 hidden"></div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                     <div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-gray-500">Total Models</p><h3 id="total-models-stat" class="text-2xl font-bold">-</h3></div><div class="p-3 rounded-full bg-indigo-100 text-indigo-600"><i class="fas fa-robot text-xl"></i></div></div></div>
-                    <div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-gray-500">Active Models</p><h3 id="active-models-stat" class="text-2xl font-bold">-</h3></div><div class="p-3 rounded-full bg-green-100 text-green-600"><i class="fas fa-check-circle text-xl"></i></div></div></div>
-                    <div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-gray-500">Detection Models</p><h3 id="detection-models-stat" class="text-2xl font-bold">-</h3></div><div class="p-3 rounded-full bg-blue-100 text-blue-600"><i class="fas fa-brain text-xl"></i></div></div></div>
-                    <div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-gray-500">Classifier Models</p><h3 id="classifier-models-stat" class="text-2xl font-bold">-</h3></div><div class="p-3 rounded-full bg-purple-100 text-purple-600"><i class="fas fa-user-tag text-xl"></i></div></div></div>
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Total Models</p>
+                                <h3 id="total-models-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                                <i class="fas fa-robot text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Active Models</p>
+                                <h3 id="active-models-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Pending Models</p>
+                                <h3 id="pending-models-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                                <i class="fas fa-hourglass-half text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Inactive Models</p>
+                                <h3 id="inactive-models-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-gray-100 text-gray-600">
+                                <i class="fas fa-ban text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Training Models</p>
+                                <h3 id="training-models-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                <i class="fas fa-spinner fa-spin text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Error Models</p>
+                                <h3 id="error-models-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-red-100 text-red-600">
+                                <i class="fas fa-exclamation-triangle text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Detection Models</p>
+                                <h3 id="detection-models-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-cyan-100 text-cyan-600">
+                                <i class="fas fa-search-location text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Classifier Models</p>
+                                <h3 id="classifier-models-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                                <i class="fas fa-user-tag text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="bg-white rounded-lg shadow mb-6 p-4">
@@ -87,8 +175,8 @@
                                 <i class="fas fa-plus"></i>
                                 <span>Add New Model</span>
                             </button>
-                            <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2"> <i class="fas fa-file-import"></i><span>Import</span></button>
-                            <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2"> <i class="fas fa-file-export"></i><span>Export</span></button>
+                            <button id="import-model-button" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2"> <i class="fas fa-file-import"></i><span>Import</span></button>
+                            <button id="export-all-button" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2"> <i class="fas fa-file-export"></i><span>Export</span></button>
                         </div>
                         <div class="flex items-center space-x-2">
                             <div class="relative">
@@ -112,7 +200,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div id="modelDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
                     <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-screen overflow-auto">
                         <div class="p-6 border-b"><div class="flex justify-between items-center"><h2 id="modal-model-title" class="text-2xl font-bold">Model Details</h2><button id="closeModal" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button></div></div>
@@ -130,7 +217,7 @@
                                          <div class="space-y-2">
                                             <button id="modal-deploy-button" data-model-id="" class="w-full py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center justify-center space-x-2 disabled:opacity-50" disabled> <i class="fas fa-play"></i><span>Deploy</span></button>
                                             <button id="modal-edit-button" data-model-id="" class="w-full py-2 border border-indigo-600 text-indigo-600 rounded hover:bg-indigo-50 flex items-center justify-center space-x-2"> <i class="fas fa-pencil-alt"></i><span>Edit Model</span></button>
-                                            <button id="modal-export-button" data-model-id="" class="w-full py-2 border border-gray-300 rounded hover:bg-gray-50 flex items-center justify-center space-x-2 disabled:opacity-50" disabled><i class="fas fa-download"></i><span>Export</span></button>
+                                            <button id="modal-export-button" data-model-id="" class="w-full py-2 border border-gray-300 rounded hover:bg-gray-50 flex items-center justify-center space-x-2 disabled:opacity-50"><i class="fas fa-download"></i><span>Export</span></button>
                                             <button id="modal-delete-button" data-model-id="" class="w-full py-2 border border-red-500 text-red-500 rounded hover:bg-red-50 flex items-center justify-center space-x-2"><i class="fas fa-trash-alt"></i><span>Delete Model</span></button>
                                         </div>
                                     </div>
@@ -155,9 +242,19 @@
                     </div>
                 </div>
             </main>
+            <div id="pagination-controls" class="mt-6 mb-6 flex justify-center items-center space-x-2 hidden">
+                <button id="prev-page" class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span id="page-info" class="text-sm text-gray-700 px-2">Page 1 of 1</span>
+                <button id="next-page" class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                     Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- {/* Add/Edit Model Form Modal */} -->
     <div id="modelFormModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-screen overflow-auto">
             <form id="model-form">
@@ -185,10 +282,11 @@
                             <option value="FINGERPRINT_CLASSIFIER">Fingerprint Classifier</option>
                         </select>
                     </div>
-                    <div>
+                    <!-- {/* Bỏ input model-path vì backend sẽ tự xử lý */} -->
+                    <!-- <div>
                         <label for="model-path" class="block text-sm font-medium text-gray-700 mb-1">Model Path <span class="text-red-500">*</span></label>
                         <input type="text" id="model-path" name="modelPath" required maxlength="255" placeholder="/path/to/your/model.h5" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
+                    </div> -->
                     <div>
                         <label for="model-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                         <textarea id="model-description" name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
@@ -196,6 +294,16 @@
                      <div>
                         <label for="model-trained-at" class="block text-sm font-medium text-gray-700 mb-1">Trained At</label>
                         <input type="datetime-local" id="model-trained-at" name="trainedAt" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <!-- {/* *** THÊM INPUT FILE VÀO ĐÂY *** */} -->
+                    <div>
+                        <label for="model-file-input" class="block text-sm font-medium text-gray-700 mb-1">
+                            Model File <span id="file-required-indicator" class="text-red-500">*</span>
+                            <span id="file-optional-indicator" class="text-gray-500 text-xs hidden">(Optional for edit)</span>
+                        </label>
+                        <input type="file" id="model-file-input" name="file" accept=".h5,.pb,.onnx,.pt,.tflite,.*"
+                               class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                         <p id="current-file-info" class="text-xs text-gray-500 mt-1 hidden"></p>
                     </div>
                 </div>
                 <div class="p-6 border-t flex justify-end space-x-2">
@@ -209,6 +317,6 @@
 
     <!-- Link tới file JavaScript tùy chỉnh (đặt cuối body) -->
     <!-- *** KIỂM TRA LẠI ĐƯỜNG DẪN NÀY! Nếu script.js cùng thư mục với index.html, hãy dùng src="script.js" *** -->
-    <script src="js/script.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>

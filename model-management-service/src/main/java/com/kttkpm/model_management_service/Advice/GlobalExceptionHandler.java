@@ -1,5 +1,6 @@
 package com.kttkpm.model_management_service.Advice;
 
+import com.kttkpm.model_management_service.Exception.FileStorageException;
 import com.kttkpm.model_management_service.Exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,14 @@ public class GlobalExceptionHandler {
         ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), ex.getMessage(), request.getDescription(false));
         log.error("An unexpected error occurred: {}", ex.getMessage(), ex); // Log lỗi nghiêm trọng với stack trace
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR); // Trả về lỗi 500
+    }
+
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<ErrorDetails> handleFileStorageException(FileStorageException ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), "File Storage Error: " + ex.getMessage(), request.getDescription(false));
+        log.error("File storage error: {}", ex.getMessage()); // Log lỗi file
+        // Có thể trả về 400 nếu lỗi do client (vd: file trống), 500 nếu lỗi server
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST); // Hoặc INTERNAL_SERVER_ERROR
     }
 
     // Lớp nội bộ để định dạng chi tiết lỗi trả về (tùy chọn)

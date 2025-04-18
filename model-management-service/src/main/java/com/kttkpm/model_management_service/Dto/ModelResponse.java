@@ -1,5 +1,6 @@
 package com.kttkpm.model_management_service.Dto;
 
+import com.kttkpm.model_management_service.Entity.ModelStatus;
 import com.kttkpm.model_management_service.Entity.ModelType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class ModelResponse {
     private String modelPath;
     private String description;
     private LocalDateTime trainedAt;
+    private ModelStatus status; // *** THÊM STATUS ***
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
