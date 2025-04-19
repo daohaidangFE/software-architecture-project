@@ -11,7 +11,13 @@ target/
 Model/
 FRONTEND/Demo import model/
 FRONTEND/simple_dummy_models/
-FRONTEND/employee-stats.html
+FRONTEND/js/api.js
+FRONTEND/js/main copy.js
+FRONTEND/js/main.js
+FRONTEND/js/modal.js
+FRONTEND/js/ui.js
+FRONTEND/js/utils.js
+FRONTEND/index.html
 # Logs và file tạm
 *.log
 *.tmp

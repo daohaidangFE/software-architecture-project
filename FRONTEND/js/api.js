@@ -1,6 +1,6 @@
 // js/api.js
 
-const API_BASE_URL = 'http://localhost:8081/api/v1/models'; // URL cơ sở
+const API_BASE_URL = 'http://localhost:9000/api/models/'; // URL cơ sở
 
 // Lấy tất cả models (có thể thêm params sau này nếu cần)
 export async function fetchModels() {

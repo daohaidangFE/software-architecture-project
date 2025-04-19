@@ -1,0 +1,34 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: model_service_route
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/models/**
+          filters:
+            - RewritePath=/api/models/(?<segment>.*), /api/v1/models/$\{segment}
+
+        - id: employee_service_route
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/employees/**
+          filters:
+            - RewritePath=/api/employees/(?<segment>.*), /api/v1/employees/$\{segment}
+
+        - id: statistic_service_route
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/statistics/**
+          filters:
+            - RewritePath=/api/statistics/(?<segment>.*), /api/v1/statistics/$\{segment}
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG
+    root: INFO

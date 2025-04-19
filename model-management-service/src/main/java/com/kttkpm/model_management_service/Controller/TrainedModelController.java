@@ -26,8 +26,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/models")
-@CrossOrigin(origins = "*") // Quan trọng: Đảm bảo CORS cho phép các method này
+@RequestMapping("/api/v1/models/")
+//@CrossOrigin(origins = "*") // Quan trọng: Đảm bảo CORS cho phép các method này
 public class TrainedModelController {
 
     private static final Logger log = LoggerFactory.getLogger(TrainedModelController.class);
@@ -39,13 +39,13 @@ public class TrainedModelController {
         this.modelService = modelService;
     }
 
-    @GetMapping
+    @GetMapping()
     public ResponseEntity<List<ModelResponse>> getAllModels() {
         List<ModelResponse> models = modelService.getAllModels();
         return ResponseEntity.ok(models);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("{id}")
     public ResponseEntity<ModelResponse> getModelById(@PathVariable Long id) {
         ModelResponse model = modelService.getModelById(id);
         return ResponseEntity.ok(model);
@@ -68,7 +68,7 @@ public class TrainedModelController {
 
 
     // --- SỬA ĐỔI PUT (NẾU MUỐN HỖ TRỢ UPLOAD FILE KHI EDIT) ---
-    @PutMapping(value = "/{id}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }) // Sửa consumes
+    @PutMapping(value = "{id}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }) // Sửa consumes
     public ResponseEntity<ModelResponse> updateModelWithFile(
             @PathVariable Long id,
             // Dùng @ModelAttribute cho DTO update
@@ -81,7 +81,7 @@ public class TrainedModelController {
         ModelResponse updatedModel = modelService.updateModelWithFile(id, updateRequest, file);
         return ResponseEntity.ok(updatedModel);
     }
-    @GetMapping("/export/csv")
+    @GetMapping("export/csv")
     public ResponseEntity<String> exportModelsToCsv() {
 //        log.info("Request received to export models to CSV");
         try {
@@ -102,13 +102,13 @@ public class TrainedModelController {
     }
 
     // --- DELETE (Giữ nguyên) ---
-    @DeleteMapping("/{id}")
+    @DeleteMapping("{id}")
     public ResponseEntity<Void> deleteModel(@PathVariable Long id) {
         modelService.deleteModel(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/download")
+    @GetMapping("{id}/download")
     public ResponseEntity<Resource> downloadModelFile(@PathVariable Long id) {
         log.info("Request received to download model file for id: {}", id);
         try {
