@@ -11,7 +11,6 @@ target/
 Model/
 FRONTEND/Demo import model/
 FRONTEND/simple_dummy_models/
-FRONTEND/employee-stats.html
 # Logs và file tạm
 *.log
 *.tmp
