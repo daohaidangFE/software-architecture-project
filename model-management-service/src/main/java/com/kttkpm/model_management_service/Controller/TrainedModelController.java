@@ -39,7 +39,7 @@ public class TrainedModelController {
         this.modelService = modelService;
     }
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<List<ModelResponse>> getAllModels() {
         List<ModelResponse> models = modelService.getAllModels();
         return ResponseEntity.ok(models);
