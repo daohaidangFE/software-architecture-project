@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint Security - Employee Statistics</title> <!-- Changed Title -->
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Link tới file CSS tùy chỉnh -->
+    <!-- *** KIỂM TRA LẠI ĐƯỜNG DẪN NÀY! Nếu style.css cùng thư mục với index.html, hãy dùng href="style.css" *** -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔑</text></svg>">
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="sidebar bg-indigo-800 text-white w-64 flex-shrink-0">
+            <div class="p-4 flex items-center space-x-2 border-b border-indigo-700">
+                <div class="fingerprint-scan w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-fingerprint text-xl"></i>
+                </div>
+                <h1 class="text-xl font-bold">FingerSecure</h1>
+            </div>
+            <nav class="p-4">
+                <div class="mb-6">
+                    <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-3">Management</h2>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700"><i class="fas fa-users-cog"></i><span>Employees</span></a></li>
+                        <li><a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700"><i class="fas fa-fingerprint"></i><span>Fingerprint Templates</span></a></li>
+                    </ul>
+                </div>
+                <div class="mb-6">
+                    <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-3">Model Training</h2>
+                    <ul class="space-y-2">
+                         <li><a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700"><i class="fas fa-brain"></i><span>Train Fingerprint Detection</span></a></li>
+                        <li><a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700"><i class="fas fa-user-tag"></i><span>Train Person Recognition</span></a></li>
+                    </ul>
+                </div>
+                 <div class="mb-6">
+                    <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-3">Trained Models</h2>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700"><i class="fas fa-robot"></i><span>Model Management</span></a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-3">Statistics</h2>
+                    <ul class="space-y-2">
+                        <!-- Changed Active Link -->
+                        <li><a href="#" class="flex items-center space-x-2 px-3 py-2 rounded bg-indigo-900"><i class="fas fa-chart-bar"></i><span>Employee Stats</span></a></li>
+                        <li><a href="#" class="flex items-center space-x-2 px-3 py-2 rounded hover:bg-indigo-700"><i class="fas fa-chart-line"></i><span>Model Stats</span></a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Header -->
+            <header class="bg-white shadow-sm">
+                 <div class="flex items-center justify-between px-6 py-4">
+                    <!-- Changed Header Title -->
+                    <h1 class="text-2xl font-bold text-gray-800">Employee Statistics</h1>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <!-- Changed Search Placeholder -->
+                            <input type="text" id="search-input" placeholder="Search employees..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <div class="relative"><button class="p-2 rounded-full hover:bg-gray-100"><i class="fas fa-bell text-gray-600"></i><span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span></button></div>
+                        <div class="flex items-center space-x-2"><div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white"><span>AD</span></div><span class="font-medium">Admin</span></div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="p-6">
+                <div id="feedback-message" class="mb-4 hidden"></div>
+
+                <!-- Stats Cards - Updated for Employees -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Total Employees</p>
+                                <h3 id="total-employees-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                                <i class="fas fa-users text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Active Employees</p>
+                                <h3 id="active-employees-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                <i class="fas fa-user-check text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Inactive Employees</p>
+                                <h3 id="inactive-employees-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-red-100 text-red-600">
+                                <i class="fas fa-user-slash text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Registered Fingerprints</p>
+                                <h3 id="registered-fingerprints-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                <i class="fas fa-fingerprint text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Missing Fingerprints</p>
+                                <h3 id="missing-fingerprints-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                                <i class="fas fa-exclamation-circle text-xl"></i> <!-- Changed icon -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">New Hires (This Month)</p>
+                                <h3 id="new-hires-stat" class="text-2xl font-bold">-</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-cyan-100 text-cyan-600">
+                                <i class="fas fa-user-plus text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Avg. Attendance (Fake)</p> <!-- Example Stat -->
+                                <h3 id="avg-attendance-stat" class="text-2xl font-bold">95%</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                                <i class="fas fa-calendar-check text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Departments</p> <!-- Example Stat -->
+                                <h3 id="departments-stat" class="text-2xl font-bold">5</h3>
+                            </div>
+                            <div class="p-3 rounded-full bg-gray-100 text-gray-600">
+                                <i class="fas fa-building text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Action Bar - Adjusted for Employees -->
+                <div class="bg-white rounded-lg shadow mb-6 p-4">
+                   <div class="flex flex-wrap items-center justify-between">
+                        <div class="flex space-x-2 mb-2 md:mb-0">
+                            <!-- Removed Add Button, maybe link to employee management page elsewhere -->
+                            <button id="import-employees-button" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2"> <i class="fas fa-file-import"></i><span>Import List</span></button>
+                            <button id="export-stats-button" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2"> <i class="fas fa-file-export"></i><span>Export Stats</span></button>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="relative">
+                                <select id="sort-select" class="appearance-none pl-3 pr-8 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <!-- Updated Sort Options -->
+                                    <option value="name_asc">Sort by: Name (A-Z)</option>
+                                    <option value="name_desc">Sort by: Name (Z-A)</option>
+                                    <option value="hire_date_newest">Sort by: Newest Hire</option>
+                                    <option value="hire_date_oldest">Sort by: Oldest Hire</option>
+                                    <option value="id_asc">Sort by: Employee ID</option>
+                                </select>
+                                <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+                            </div>
+                            <button class="p-2 rounded-lg hover:bg-gray-100"> <i class="fas fa-filter"></i> </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Employee Data Table -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fingerprint</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hire Date</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employee-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Example Row (to be replaced by JS) -->
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EMP-001</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">John Doe</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Technology</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Developer</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Registered</span>
+                                    </td>
+                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2023-01-15</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                        <a href="#" class="text-indigo-600 hover:text-indigo-900" title="View Details"><i class="fas fa-eye"></i></a>
+                                        <a href="#" class="text-gray-600 hover:text-gray-900" title="Edit Employee"><i class="fas fa-pencil-alt"></i></a> <!-- Link to Management Page -->
+                                    </td>
+                                </tr>
+                                <!-- More rows will be added dynamically -->
+                                 <tr>
+                                    <td colspan="8" class="text-center py-4 text-gray-500 text-sm">Loading employee data...</td>
+                                 </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="pagination-controls" class="mt-6 mb-6 flex justify-center items-center space-x-2 hidden">
+                    <button id="prev-page" class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span id="page-info" class="text-sm text-gray-700 px-2">Page 1 of 1</span>
+                    <button id="next-page" class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Modals Removed - Add back specific modals for employees if needed -->
+
+    <!-- Link tới file JavaScript tùy chỉnh (đặt cuối body) -->
+    <!-- *** KIỂM TRA LẠI ĐƯỜNG DẪN NÀY! Nếu employee-stats.js cùng thư mục với index.html, hãy dùng src="js/employee-stats.js" *** -->
+    <script type="module" src="js/employee-stats.js"></script> <!-- Changed JS file -->
+</body>
+</html>
