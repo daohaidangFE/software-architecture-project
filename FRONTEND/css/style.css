@@ -1,0 +1,21 @@
+/* Custom CSS (non-Tailwind) */
+.sidebar {
+    transition: all 0.3s;
+}
+
+.model-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.fingerprint-scan {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+/* Thêm các style tùy chỉnh khác nếu có */
